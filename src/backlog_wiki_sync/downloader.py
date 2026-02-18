@@ -339,8 +339,9 @@ def prompt_for_missing(
         print("BacklogスペースのURLを入力してください")
         print("例: https://xxx.backlog.com または https://xxx.backlog.jp")
         space_url = input("URL: ").strip()
-        if space_url and not space_url.startswith("http"):
-            space_url = "https://" + space_url
+        if space_url:
+            # ベースURLを抽出（Wiki URLなどが入力されても対応）
+            space_url = BacklogWikiDownloader._extract_base_url(space_url)
         print()
 
     # プロジェクトキーを取得（未設定の場合のみ）
