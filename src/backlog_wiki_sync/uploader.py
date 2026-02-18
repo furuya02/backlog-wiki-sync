@@ -320,31 +320,45 @@ class BacklogWikiUploader:
 # CLI Functions
 # ===================
 
-def get_user_input(default_target_url: str = "") -> tuple[str, str, str]:
-    """ユーザーから入力を取得"""
-    print("=" * 60)
-    print("Backlog Wiki Uploader")
-    print("=" * 60)
-    print()
+def prompt_for_missing(
+    api_key: str = "",
+    target_wiki_url: str | None = None,
+    space_url: str = "",
+    show_header: bool = True,
+) -> tuple[str, str, str]:
+    """
+    不足している項目のみをユーザーに問い合わせる
 
-    # APIキーを取得
-    print("APIキーを入力してください")
-    print("(個人設定 → API → APIキーの発行で取得できます)")
-    api_key = getpass("API Key (入力は表示されません): ").strip()
-    print()
+    Args:
+        api_key: 現在のAPIキー（空なら問い合わせ）
+        target_wiki_url: 対象WikiのURL（Noneなら問い合わせ、空文字は全Wiki）
+        space_url: 現在のスペースURL
+        show_header: ヘッダーを表示するか
+    """
+    if show_header:
+        print("=" * 60)
+        print("Backlog Wiki Uploader")
+        print("=" * 60)
+        print()
 
-    # アップロード対象のWiki URLを取得
-    print("アップロードするWikiのURLを入力してください（空欄で全Wiki対象）")
-    print("例: https://xxx.backlog.com/alias/wiki/12345")
-    if default_target_url:
-        print(f"デフォルト: {default_target_url}")
-    wiki_url = input("URL: ").strip() or default_target_url
-    print()
+    # APIキーを取得（未設定の場合のみ）
+    if not api_key:
+        print("APIキーを入力してください")
+        print("(個人設定 → API → APIキーの発行で取得できます)")
+        api_key = getpass("API Key (入力は表示されません): ").strip()
+        print()
+
+    # アップロード対象のWiki URLを取得（Noneの場合のみ問い合わせ）
+    if target_wiki_url is None:
+        print("アップロードするWikiのURLを入力してください（空欄で全Wiki対象）")
+        print("例: https://xxx.backlog.com/alias/wiki/12345")
+        target_wiki_url = input("URL: ").strip()
+        print()
 
     # スペースURLを決定
-    if wiki_url:
-        space_url = BacklogWikiUploader._extract_base_url(wiki_url)
-    else:
+    if target_wiki_url:
+        space_url = BacklogWikiUploader._extract_base_url(target_wiki_url)
+    elif not space_url:
         print("BacklogスペースのURLを入力してください")
         print("例: https://xxx.backlog.com または https://xxx.backlog.jp")
         space_url = input("URL: ").strip()
@@ -352,7 +366,7 @@ def get_user_input(default_target_url: str = "") -> tuple[str, str, str]:
             space_url = "https://" + space_url
         print()
 
-    return api_key, wiki_url, space_url
+    return api_key, target_wiki_url or "", space_url
 
 
 def parse_args() -> argparse.Namespace:
@@ -395,22 +409,22 @@ def main():
 
         # 設定ファイル → コマンドライン引数の順で値を決定
         api_key = args.api_key or config.get("api_key", "")
-        target_wiki_url = args.target_url or ""
+        space_url = config.get("space_url", "")
 
-        # target_wiki_urlがあればそこからspace_urlを抽出、なければ設定ファイルから
-        if target_wiki_url:
-            space_url = BacklogWikiUploader._extract_base_url(target_wiki_url)
+        # target_wiki_urlは設定されているかどうかを区別する（Noneなら問い合わせ）
+        if args.target_url:
+            target_wiki_url = args.target_url
+        elif "target_wiki_url" in config:
+            target_wiki_url = config["target_wiki_url"]
         else:
-            space_url = config.get("space_url", "")
+            target_wiki_url = None  # 設定がないので問い合わせる
 
-        # 必須項目（api_key）が揃っていて、space_urlも決定できる場合はそのまま使用
-        if api_key and (target_wiki_url or space_url):
-            pass  # 値はすでに設定済み
-        else:
-            # 不足している場合は対話モード
-            api_key, target_wiki_url, space_url = get_user_input(
-                default_target_url=target_wiki_url,
-            )
+        # 不足している項目を問い合わせ
+        api_key, target_wiki_url, space_url = prompt_for_missing(
+            api_key=api_key,
+            target_wiki_url=target_wiki_url,
+            space_url=space_url,
+        )
 
         if not all([api_key, space_url]):
             print("Error: すべての項目を入力してください")
