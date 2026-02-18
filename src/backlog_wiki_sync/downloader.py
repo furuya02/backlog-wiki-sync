@@ -311,62 +311,59 @@ def resolve_wiki_prefix(user_input: str, space_url: str, api_key: str) -> str:
     return user_input
 
 
-def get_user_input(
-    default_url: str = "", default_project: str = "", default_prefix: str = ""
+def prompt_for_missing(
+    space_url: str = "",
+    project_key: str = "",
+    api_key: str = "",
+    wiki_prefix: str = "",
+    show_header: bool = True,
 ) -> tuple[str, str, str, str]:
     """
-    ユーザーから入力を取得
+    不足している項目のみをユーザーに問い合わせる
 
     Args:
-        default_url: URLのデフォルト値
-        default_project: プロジェクトキーのデフォルト値
-        default_prefix: Wiki階層フィルタのデフォルト値
+        space_url: 現在のスペースURL（空なら問い合わせ）
+        project_key: 現在のプロジェクトキー（空なら問い合わせ）
+        api_key: 現在のAPIキー（空なら問い合わせ）
+        wiki_prefix: 現在のWiki prefix（Noneなら問い合わせ、空文字は全Wiki）
+        show_header: ヘッダーを表示するか
     """
-    print("=" * 60)
-    print("Backlog Wiki Downloader")
-    print("=" * 60)
-    print()
+    if show_header:
+        print("=" * 60)
+        print("Backlog Wiki Downloader")
+        print("=" * 60)
+        print()
 
-    # スペースURLを取得
-    print("BacklogスペースのURLを入力してください")
-    print("例: https://xxx.backlog.com または https://xxx.backlog.jp")
-    if default_url:
-        print(f"デフォルト: {default_url}")
-    space_url = input("URL: ").strip() or default_url
+    # スペースURLを取得（未設定の場合のみ）
+    if not space_url:
+        print("BacklogスペースのURLを入力してください")
+        print("例: https://xxx.backlog.com または https://xxx.backlog.jp")
+        space_url = input("URL: ").strip()
+        if space_url and not space_url.startswith("http"):
+            space_url = "https://" + space_url
+        print()
 
-    # URLの検証と正規化
-    if space_url and not space_url.startswith("http"):
-        space_url = "https://" + space_url
+    # プロジェクトキーを取得（未設定の場合のみ）
+    if not project_key:
+        print("プロジェクトキーを入力してください")
+        print("例: MYPRJ (プロジェクトURLの /projects/XXX の部分)")
+        project_key = input("Project Key: ").strip()
+        print()
 
-    print()
+    # APIキーを取得（未設定の場合のみ）
+    if not api_key:
+        print("APIキーを入力してください")
+        print("(個人設定 → API → APIキーの発行で取得できます)")
+        api_key = getpass("API Key (入力は表示されません): ").strip()
+        print()
 
-    # プロジェクトキーを取得
-    print("プロジェクトキーを入力してください")
-    print("例: MYPRJ (プロジェクトURLの /projects/XXX の部分)")
-    if default_project:
-        print(f"デフォルト: {default_project}")
-    project_key = input("Project Key: ").strip() or default_project
-
-    print()
-
-    # APIキーを取得
-    print("APIキーを入力してください")
-    print("(個人設定 → API → APIキーの発行で取得できます)")
-    api_key = getpass("API Key (入力は表示されません): ").strip()
-
-    print()
-
-    # Wiki階層フィルタを取得
-    print("取得するWikiの階層を入力してください（空欄で全Wiki対象）")
-    print("例: 開発/設計書 または https://xxx.backlog.com/alias/wiki/12345")
-    if default_prefix:
-        print(f"デフォルト: {default_prefix}")
-    prefix_input = input("Wiki Prefix or URL: ").strip() or default_prefix
-
-    # URLが入力された場合はWiki名を取得
-    wiki_prefix = resolve_wiki_prefix(prefix_input, space_url, api_key) if prefix_input else ""
-
-    print()
+    # Wiki階層フィルタを取得（wiki_prefixがNoneの場合のみ問い合わせ）
+    if wiki_prefix is None:
+        print("取得するWikiの階層を入力してください（空欄で全Wiki対象）")
+        print("例: 開発/設計書 または https://xxx.backlog.com/alias/wiki/12345")
+        prefix_input = input("Wiki Prefix or URL: ").strip()
+        wiki_prefix = resolve_wiki_prefix(prefix_input, space_url, api_key) if prefix_input else ""
+        print()
 
     return space_url, project_key, api_key, wiki_prefix
 
@@ -420,20 +417,27 @@ def main():
         space_url = args.url or config.get("space_url", "")
         project_key = args.project or config.get("project_key", "")
         api_key = args.api_key or config.get("api_key", "")
-        wiki_prefix = args.prefix or config.get("wiki_prefix", "")
         output_dir = args.output if args.output != "Wiki" else config.get("output_dir", "Wiki")
 
-        # 必須項目が全て揃っている場合はそのまま使用
-        if space_url and project_key and api_key:
-            # wiki_prefixがURLの場合は解決
-            wiki_prefix = resolve_wiki_prefix(wiki_prefix, space_url, api_key)
+        # wiki_prefixは設定されているかどうかを区別する（Noneなら問い合わせ）
+        if args.prefix:
+            wiki_prefix = args.prefix
+        elif "wiki_prefix" in config:
+            wiki_prefix = config["wiki_prefix"]
         else:
-            # 不足している場合は対話モード（既存の値をデフォルトとして使用）
-            space_url, project_key, api_key, wiki_prefix = get_user_input(
-                default_url=space_url,
-                default_project=project_key,
-                default_prefix=wiki_prefix,
-            )
+            wiki_prefix = None  # 設定がないので問い合わせる
+
+        # 不足している項目を問い合わせ
+        space_url, project_key, api_key, wiki_prefix = prompt_for_missing(
+            space_url=space_url,
+            project_key=project_key,
+            api_key=api_key,
+            wiki_prefix=wiki_prefix,
+        )
+
+        # wiki_prefixがURLの場合は解決
+        if wiki_prefix:
+            wiki_prefix = resolve_wiki_prefix(wiki_prefix, space_url, api_key)
 
         # 入力検証
         if not all([space_url, project_key, api_key]):
