@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "backlog-wiki-sync"
+version = "1.1.0"
+description = "Backlog Wikiとローカル環境を同期するツール（ダウンロード・編集・アップロード）"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "hirauchi-shinichi"}
+]
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Utilities",
+]
+keywords = ["backlog", "wiki", "markdown", "sync", "downloader", "uploader"]
+
+[project.urls]
+Homepage = "https://github.com/furuya02/backlog-wiki-sync"
+Repository = "https://github.com/furuya02/backlog-wiki-sync"
+
+[project.scripts]
+backlog-wiki-downloader = "backlog_wiki_sync.downloader:main"
+backlog-wiki-uploader = "backlog_wiki_sync.uploader:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
