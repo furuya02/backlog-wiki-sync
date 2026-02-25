@@ -12,6 +12,8 @@ Backlog Wikiとローカル環境を同期するコマンドラインツール
 - **backlog-wiki-uploader**: 編集したページをBacklogにアップロード
 - **github-wiki-builder**: ダウンロードしたWikiをGitHub Wiki形式に変換
 
+![](images/001.png)
+
 ## 機能
 
 ### ダウンローダー
