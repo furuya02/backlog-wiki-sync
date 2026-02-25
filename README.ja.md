@@ -246,6 +246,8 @@ git push origin master
 
 ## 出力形式
 
+### ダウンローダーの出力（Wikiフォルダ）
+
 ```
 Wiki/
 ├── ページ名1/
@@ -259,6 +261,18 @@ Wiki/
 │       ├── index.md
 │       ├── memo.md
 │       └── *.png
+```
+
+### GitHub Wiki Builderの出力
+
+```
+github-wiki/
+├── _Sidebar.md                    # ナビゲーションサイドバー（自動生成）
+├── Home.md                        # GitHub Wikiホームページ（手動作成）
+├── ページ名1.md                   # Wikiページ
+├── 親ページ › 子ページ.md         # ネストされたページ（ファイル名に区切り文字）
+├── img_xxxxxxxx_001.png           # 画像（安全なASCIIファイル名）
+└── img_yyyyyyyy_002.png
 ```
 
 ## プロジェクトキーの確認方法
