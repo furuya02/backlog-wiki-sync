@@ -6,10 +6,11 @@ Backlog Wikiとローカル環境を同期するコマンドラインツール
 
 ## 概要
 
-このパッケージは2つのコマンドを提供します：
+このパッケージは3つのコマンドを提供します：
 
 - **backlog-wiki-downloader**: Backlog WikiをMarkdown形式でダウンロード
 - **backlog-wiki-uploader**: 編集したページをBacklogにアップロード
+- **github-wiki-builder**: ダウンロードしたWikiをGitHub Wiki形式に変換
 
 ## 機能
 
@@ -29,6 +30,14 @@ Backlog Wikiとローカル環境を同期するコマンドラインツール
 - URLで特定ページを指定、または全ページを一括アップロード
 - ドライランモードで変更をプレビュー可能
 
+### GitHub Wiki Builder
+- ダウンロードしたWikiフォルダをGitHub Wiki形式に変換
+- 折りたたみ可能なナビゲーション付き`_Sidebar.md`を自動生成（HTML `<details>`タグ使用）
+- ページと画像を安全なASCIIファイル名でコピー
+- パス区切り文字を設定可能（デフォルト: ` › `）
+- サイドバーの展開レベルを設定可能（デフォルト: 2階層）
+- 重複するh1タイトルを削除（GitHub Wikiはファイル名をタイトルとして表示するため）
+
 ## インストール
 
 ### pipを使用
@@ -39,11 +48,12 @@ cd backlog-wiki-sync
 pip install -e .
 ```
 
-pipでインストール後、両方のコマンドがグローバルに使用可能になります：
+pipでインストール後、すべてのコマンドがグローバルに使用可能になります：
 
 ```bash
 backlog-wiki-downloader
 backlog-wiki-uploader
+github-wiki-builder
 ```
 
 ## 設定ファイル
@@ -63,6 +73,17 @@ backlog-wiki-uploader
 設定ファイルが存在する場合、ツールは自動的に値を読み込みます。コマンドライン引数は設定ファイルの値より優先されます。
 
 > **注意**: 設定ファイルにはAPIキーが含まれます。誤ってコミットされないよう、`.gitignore`に自動的に追加されています。
+
+### GitHub Wiki Builder設定
+
+`.github-wiki-builder.json`ファイルを作成できます：
+
+```json
+{
+  "wiki_path": "./Wiki",
+  "output_path": "./github-wiki"
+}
+```
 
 ## 使用方法（ダウンローダー）
 
@@ -165,7 +186,67 @@ options:
   -n, --dry-run         ドライランモード（実際にはアップロードしない）
 ```
 
+## 使用方法（GitHub Wiki Builder）
+
+### 事前準備
+
+まずGitHub Wikiリポジトリをクローンします：
+
+```bash
+git clone git@github.com:<org>/<repo>.wiki.git ./github-wiki
+```
+
+### 対話モード（推奨）
+
+```bash
+github-wiki-builder
+```
+
+プロンプトに従って以下を入力：
+1. Wikiフォルダのパス（デフォルト: `./Wiki`）
+2. GitHub Wikiリポジトリのパス（例: `./github-wiki`）
+
+### コマンドライン引数モード
+
+```bash
+github-wiki-builder \
+  --input ./Wiki \
+  --output ./github-wiki
+```
+
+### オプション
+
+```
+usage: github-wiki-builder [-h] [-i INPUT] [-o OUTPUT] [-s SEPARATOR] [-e EXPAND_LEVEL]
+
+Backlog WikiをGitHub Wiki形式に変換
+
+options:
+  -h, --help            ヘルプメッセージを表示して終了
+  -i INPUT, --input INPUT
+                        Wikiフォルダのパス（デフォルト: ./Wiki）
+  -o OUTPUT, --output OUTPUT
+                        GitHub Wikiリポジトリのパス
+  -s SEPARATOR, --separator SEPARATOR
+                        パス区切り文字（デフォルト: ' › '）
+  -e EXPAND_LEVEL, --expand-level EXPAND_LEVEL
+                        サイドバーの展開レベル（デフォルト: 2）
+```
+
+### 実行後
+
+変更をGitHubにプッシュします：
+
+```bash
+cd ./github-wiki
+git add .
+git commit -m "Update Wiki"
+git push origin master
+```
+
 ## 出力形式
+
+### ダウンローダーの出力（Wikiフォルダ）
 
 ```
 Wiki/
@@ -180,6 +261,18 @@ Wiki/
 │       ├── index.md
 │       ├── memo.md
 │       └── *.png
+```
+
+### GitHub Wiki Builderの出力
+
+```
+github-wiki/
+├── _Sidebar.md                    # ナビゲーションサイドバー（自動生成）
+├── Home.md                        # GitHub Wikiホームページ（手動作成）
+├── ページ名1.md                   # Wikiページ
+├── 親ページ › 子ページ.md         # ネストされたページ（ファイル名に区切り文字）
+├── img_xxxxxxxx_001.png           # 画像（安全なASCIIファイル名）
+└── img_yyyyyyyy_002.png
 ```
 
 ## プロジェクトキーの確認方法
