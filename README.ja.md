@@ -74,6 +74,17 @@ github-wiki-builder
 
 > **注意**: 設定ファイルにはAPIキーが含まれます。誤ってコミットされないよう、`.gitignore`に自動的に追加されています。
 
+### GitHub Wiki Builder設定
+
+`.github-wiki-builder.json`ファイルを作成できます：
+
+```json
+{
+  "wiki_path": "./Wiki",
+  "output_path": "./github-wiki"
+}
+```
+
 ## 使用方法（ダウンローダー）
 
 ### 対話モード（推奨）
