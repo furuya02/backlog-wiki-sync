@@ -186,6 +186,64 @@ options:
   -n, --dry-run         ドライランモード（実際にはアップロードしない）
 ```
 
+## 使用方法（GitHub Wiki Builder）
+
+### 事前準備
+
+まずGitHub Wikiリポジトリをクローンします：
+
+```bash
+git clone git@github.com:<org>/<repo>.wiki.git ./github-wiki
+```
+
+### 対話モード（推奨）
+
+```bash
+github-wiki-builder
+```
+
+プロンプトに従って以下を入力：
+1. Wikiフォルダのパス（デフォルト: `./Wiki`）
+2. GitHub Wikiリポジトリのパス（例: `./github-wiki`）
+
+### コマンドライン引数モード
+
+```bash
+github-wiki-builder \
+  --input ./Wiki \
+  --output ./github-wiki
+```
+
+### オプション
+
+```
+usage: github-wiki-builder [-h] [-i INPUT] [-o OUTPUT] [-s SEPARATOR] [-e EXPAND_LEVEL]
+
+Backlog WikiをGitHub Wiki形式に変換
+
+options:
+  -h, --help            ヘルプメッセージを表示して終了
+  -i INPUT, --input INPUT
+                        Wikiフォルダのパス（デフォルト: ./Wiki）
+  -o OUTPUT, --output OUTPUT
+                        GitHub Wikiリポジトリのパス
+  -s SEPARATOR, --separator SEPARATOR
+                        パス区切り文字（デフォルト: ' › '）
+  -e EXPAND_LEVEL, --expand-level EXPAND_LEVEL
+                        サイドバーの展開レベル（デフォルト: 2）
+```
+
+### 実行後
+
+変更をGitHubにプッシュします：
+
+```bash
+cd ./github-wiki
+git add .
+git commit -m "Update Wiki"
+git push origin master
+```
+
 ## 出力形式
 
 ```
