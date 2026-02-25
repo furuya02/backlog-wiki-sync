@@ -6,10 +6,11 @@ Backlog Wikiとローカル環境を同期するコマンドラインツール
 
 ## 概要
 
-このパッケージは2つのコマンドを提供します：
+このパッケージは3つのコマンドを提供します：
 
 - **backlog-wiki-downloader**: Backlog WikiをMarkdown形式でダウンロード
 - **backlog-wiki-uploader**: 編集したページをBacklogにアップロード
+- **github-wiki-builder**: ダウンロードしたWikiをGitHub Wiki形式に変換
 
 ## 機能
 
