@@ -33,6 +33,7 @@ Repository = "https://github.com/furuya02/backlog-wiki-sync"
 [project.scripts]
 backlog-wiki-downloader = "backlog_wiki_sync.downloader:main"
 backlog-wiki-uploader = "backlog_wiki_sync.uploader:main"
+github-wiki-builder = "backlog_wiki_sync.github_wiki_builder:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
