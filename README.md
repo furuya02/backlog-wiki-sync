@@ -6,10 +6,11 @@ A command-line tool to sync Wiki pages between Backlog and your local environmen
 
 ## Overview
 
-This package provides two commands:
+This package provides three commands:
 
 - **backlog-wiki-downloader**: Download Wiki pages from Backlog in Markdown format
 - **backlog-wiki-uploader**: Upload edited pages back to Backlog
+- **github-wiki-builder**: Convert downloaded Wiki to GitHub Wiki format
 
 ## Features
 
@@ -29,6 +30,14 @@ This package provides two commands:
 - Upload specific page by URL or all pages at once
 - Dry-run mode to preview changes without uploading
 
+### GitHub Wiki Builder
+- Convert downloaded Wiki folder to GitHub Wiki format
+- Generate `_Sidebar.md` with collapsible navigation (HTML `<details>` tags)
+- Copy pages and images with safe ASCII-only filenames
+- Configurable path separator (default: ` › `)
+- Configurable sidebar expansion level (default: 2 levels)
+- Remove duplicate h1 titles (GitHub Wiki shows filename as title)
+
 ## Installation
 
 ### Using pip
@@ -39,11 +48,12 @@ cd backlog-wiki-sync
 pip install -e .
 ```
 
-After installing with pip, both commands will be available globally:
+After installing with pip, all commands will be available globally:
 
 ```bash
 backlog-wiki-downloader
 backlog-wiki-uploader
+github-wiki-builder
 ```
 
 ## Configuration File
@@ -63,6 +73,17 @@ You can create a `.backlog-wiki-sync.json` file in the current directory to avoi
 When the config file exists, the tools will automatically load values from it. Command-line arguments take precedence over config values.
 
 > **Note**: The config file contains your API key. It is automatically added to `.gitignore` to prevent accidental commits.
+
+### GitHub Wiki Builder Configuration
+
+You can create a `.github-wiki-builder.json` file:
+
+```json
+{
+  "wiki_path": "./Wiki",
+  "output_path": "./github-wiki"
+}
+```
 
 ## Usage (Downloader)
 
@@ -165,7 +186,67 @@ options:
   -n, --dry-run         Dry-run mode (preview without uploading)
 ```
 
+## Usage (GitHub Wiki Builder)
+
+### Prerequisites
+
+Clone your GitHub Wiki repository first:
+
+```bash
+git clone git@github.com:<org>/<repo>.wiki.git ./github-wiki
+```
+
+### Interactive mode (Recommended)
+
+```bash
+github-wiki-builder
+```
+
+Follow the prompts to enter:
+1. Wiki folder path (default: `./Wiki`)
+2. GitHub Wiki repository path (e.g., `./github-wiki`)
+
+### Command-line arguments mode
+
+```bash
+github-wiki-builder \
+  --input ./Wiki \
+  --output ./github-wiki
+```
+
+### Options
+
+```
+usage: github-wiki-builder [-h] [-i INPUT] [-o OUTPUT] [-s SEPARATOR] [-e EXPAND_LEVEL]
+
+Convert Backlog Wiki to GitHub Wiki format
+
+options:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        Wiki folder path (default: ./Wiki)
+  -o OUTPUT, --output OUTPUT
+                        GitHub Wiki repository path
+  -s SEPARATOR, --separator SEPARATOR
+                        Path separator character (default: ' › ')
+  -e EXPAND_LEVEL, --expand-level EXPAND_LEVEL
+                        Sidebar expansion level (default: 2)
+```
+
+### After Running
+
+Push the changes to GitHub:
+
+```bash
+cd ./github-wiki
+git add .
+git commit -m "Update Wiki"
+git push origin master
+```
+
 ## Output Structure
+
+### Downloader Output (Wiki folder)
 
 ```
 Wiki/
@@ -180,6 +261,18 @@ Wiki/
 │       ├── index.md
 │       ├── memo.md
 │       └── *.png
+```
+
+### GitHub Wiki Builder Output
+
+```
+github-wiki/
+├── _Sidebar.md                    # Navigation sidebar (auto-generated)
+├── Home.md                        # GitHub Wiki home page (manual)
+├── PageName1.md                   # Wiki page
+├── ParentPage › ChildPage.md      # Nested page (separator in filename)
+├── img_xxxxxxxx_001.png           # Image (safe ASCII filename)
+└── img_yyyyyyyy_002.png
 ```
 
 ## How to Find Your Project Key
