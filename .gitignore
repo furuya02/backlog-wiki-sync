@@ -1,8 +1,16 @@
 # Downloaded wiki output
 Wiki/
 
-# Config file (contains API key)
+# GitHub Wiki repository (cloned separately)
+cmn-wiki.wiki/
+
+# Temporary files
+tmp/
+memo.md
+
+# Config files
 .backlog-wiki-sync.json
+.github-wiki-builder.json
 
 # Python
 __pycache__/
