@@ -48,11 +48,12 @@ cd backlog-wiki-sync
 pip install -e .
 ```
 
-pipでインストール後、両方のコマンドがグローバルに使用可能になります：
+pipでインストール後、すべてのコマンドがグローバルに使用可能になります：
 
 ```bash
 backlog-wiki-downloader
 backlog-wiki-uploader
+github-wiki-builder
 ```
 
 ## 設定ファイル
